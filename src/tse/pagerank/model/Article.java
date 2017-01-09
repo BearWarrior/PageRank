@@ -5,9 +5,11 @@ package tse.pagerank.model;
  * @author Nono
  *
  */
-public abstract class Article {
-	public long id;
-	public String nom;
+public abstract class Article 
+{
+	private long id;
+	private String nom;
+	
 	public Article(long id, String nom) {
 		super();
 		this.id = id;
