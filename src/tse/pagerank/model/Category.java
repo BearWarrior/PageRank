@@ -1,15 +1,18 @@
 package tse.pagerank.model;
+import java.util.ArrayList;
 import java.util.List;
 
-public class Category 
+public class Category extends Article
 {
-	public long id;
-	public String nom;
-	public List<Category> list;
+
+	public List<Category> listParents;
+	public List<Article> listFilles;
 	
 	public Category(long id, String nom)
 	{
-		this.id = id;
-		this.nom = nom;
+		super(id, nom);
+		this.listParents = new ArrayList<>();
+		this.listFilles = new ArrayList<>();
+		
 	} 
 }
