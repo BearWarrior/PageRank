@@ -1,8 +1,8 @@
 package tse.pagerank.model;
 
 /**
- * Class abstraire pour definir soit une page soit une categorie
- * @author Nono
+ * Class abstraite pour definir soit une page soit une categorie
+ * @author Arnaud LEDRU & Thibaut GALLAIS
  *
  */
 public abstract class Article 
@@ -27,6 +27,4 @@ public abstract class Article
 	public void setNom(String nom) {
 		this.nom = nom;
 	}
-	
-	
 }
