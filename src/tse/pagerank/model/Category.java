@@ -1,19 +1,21 @@
 package tse.pagerank.model;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Category extends Article
 {
-	public List<Integer> listParents;
-	public List<Integer> listChilds;
+	public Set<Integer> listParents;
+	public Set<Integer> listChilds;
 	public int idCategory;
 	
 	public Category(long id, String nom,int idCat)
 	{
 		super(id, nom);
 		this.idCategory = idCat;
-		this.listParents = new ArrayList<>();
-		this.listChilds = new ArrayList<>();
+		this.listParents = new HashSet<>();
+		this.listChilds = new HashSet<>();
 	} 
 	
 	public void addChild(int id)
@@ -26,7 +28,7 @@ public class Category extends Article
 		listParents.add(id);
 	}
 	
-	public List<Integer> getListChilds()
+	public Set<Integer> getListChilds()
 	{
 		return listChilds;
 	}

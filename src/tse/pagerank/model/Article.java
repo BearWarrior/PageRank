@@ -7,8 +7,8 @@ package tse.pagerank.model;
  */
 public abstract class Article 
 {
-	private long id;
-	private String nom;
+	protected long id;
+	protected String nom;
 	
 	public Article(long id, String nom) {
 		super();

@@ -9,6 +9,7 @@ import java.util.zip.GZIPInputStream;
 
 import tse.pagerank.model.Category;
 import tse.pagerank.model.Page;
+import tse.pagerank.model.Paire;
 import tse.pagerank.ordonnanceur.GrandManitou;
 
 public class InputOutput 
@@ -18,12 +19,13 @@ public class InputOutput
 		final String prefixInsertCat = "INSERT INTO `category` VALUES ";
 		final String prefixInsertCatLink = "INSERT INTO `categorylinks` VALUES ";
 		final String prefixInsertPage = "INSERT INTO `page` VALUES ";
+		final String prefixInsertPageLink = "INSERT INTO `pagelinks` VALUES ";
 		final String suffixInsert = ";";
-		
+
 		int nbLigneCat = 0;
 		int nbLigneCatLink = 0;
 		int nbLignePage = 0;
-		
+
 		try 
 		{
 			BufferedReader in = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), "UTF-8"));
@@ -58,15 +60,23 @@ public class InputOutput
 						nbLignePage ++;
 					}
 				}
+				else if (type == "pageLinks")
+				{
+					if(line.startsWith(prefixInsertPageLink) && line.endsWith(suffixInsert))
+					{
+						getTuples(line, nbVirgule, type);
+						nbLignePage ++;
+					}
+				}
 				//if(nbLigne %1000 == 0)
-					//System.out.println("type : " + type + "  cpt : " + nbLigne + "  "  + (System.currentTimeMillis() - timeStart ));
+				//System.out.println("type : " + type + "  cpt : " + nbLigne + "  "  + (System.currentTimeMillis() - timeStart ));
 			}
-			if(type == "category")
+			/*if(type == "category")
 				System.out.println("nbLigneCat = " + nbLigneCat);
 			else if(type == "link")
 				System.out.println("nbLigneCatLink = " + nbLigneCatLink);
 			else if (type == "page")
-				System.out.println("nbLignePage = " + nbLignePage);
+				System.out.println("nbLignePage = " + nbLignePage);*/
 
 			in.close();
 
@@ -89,7 +99,7 @@ public class InputOutput
 		int indexF = 0;
 		int maxEcart = 0;
 		boolean findStart = true;
-		
+
 		while (indexD >= 0)
 		{
 			if(findStart)
@@ -125,6 +135,10 @@ public class InputOutput
 							break;
 						case "page":
 							getPage(line.substring(indexD +1,  indexF));
+							break;
+						case "pageLinks":
+							getPageLinks(line.substring(indexD +1,  indexF));
+							break;
 						}
 						indexD = indexF -1;
 					}
@@ -162,14 +176,8 @@ public class InputOutput
 		else // SI un article est dans catégory.sql mais qu'il n'est pas dans page on l'oublie (~200/650000)
 		{
 			// ignore it
+			GrandManitou.cptMismatch_inCategoryNotInPage++;
 		}
-		/*Category cat = new Category(Integer.parseInt(array[0]), array[1]);
-	
-		GrandManitou.hashCat.put(Integer.parseInt(array[0]), cat);	
-		GrandManitou.hashNomIdCat.put(, Integer.parseInt(array[0]));
-
-		GrandManitou.cptCat++;
-		}*/
 	}
 
 	private static void getLinks(String tuple)
@@ -179,26 +187,64 @@ public class InputOutput
 		GrandManitou.addChild(Integer.parseInt(array[0]), array[1]);
 		GrandManitou.cptLink++;
 	}
-	
+
 	private static void getPage(String tuple)
 	{
 		String[] array = tuple.split(",");
-		if(Integer.parseInt(array[1]) == 14 ) //Category
+		if(array[5] != "1") //Is not a redirect
 		{
-			Category cat = new Category(Integer.parseInt(array[0]), array[2], -1);
-			
-			/*if(GrandManitou.hashNomIdCat.get(array[2]) == null) //La catégory n'était pas encore enregistrée
-			{*/
+			if(Integer.parseInt(array[1]) == 14 ) //Category
+			{
+				Category cat = new Category(Integer.parseInt(array[0]), array[2], -1);
+
 				if(GrandManitou.hashCat.put(Integer.parseInt(array[0]), cat) != null)
 					GrandManitou.cptCat++;
 				GrandManitou.hashNomIdCat.put(array[2], Integer.parseInt(array[0]));
-			/*}	*/		
+
+			}
+			else if(Integer.parseInt(array[1]) == 0 ) // real content article
+			{
+				Page page = new Page(Integer.parseInt(array[0]), array[2], 0); //not yet a pagerank
+				GrandManitou.hashPage.put(Integer.parseInt(array[0]), page);
+				GrandManitou.cptPage++;
+
+				GrandManitou.hashNomIdPage.put(array[2], Integer.parseInt(array[0]));
+			}
 		}
-		else if(Integer.parseInt(array[1]) == 0 ) // real content article
+	}
+
+	// /!\ Warning, in function of the version of the dump, array[2] and array[3] swap (title and namespaceDestination)
+	private static void getPageLinks(String tuple)
+	{
+		String[] array = tuple.split(",");
+
+		if(Integer.parseInt(array[1]) == 0) //If its a real page 
 		{
-			Page page = new Page(Integer.parseInt(array[0]), array[2]);
-			GrandManitou.hashPage.put(Integer.parseInt(array[0]), page);
-			GrandManitou.cptPage++;
+			int idSrc = Integer.parseInt(array[0]);
+			String title = array[2];
+
+			int idPageDest = 0;
+			if(GrandManitou.hashNomIdPage.get(title) != null)
+			{
+				idPageDest = GrandManitou.hashNomIdPage.get(title);
+				try
+				{
+					GrandManitou.hashPage.get(idSrc).addLink(idPageDest); //Add a destination to the src page
+					Paire temp = new Paire(idPageDest,idSrc);
+					GrandManitou.tabDestSrc.add(temp); //Add a row    idDest -> idSrc for the pageRank
+					GrandManitou.nbpPageLinks++;
+				} 
+				catch(NullPointerException e)
+				{
+					// 4 errors on simple wiki : 192249 	542257 	394434  165556 
+					// --> They have different namespaces in pagelinks and in page 
+					//System.out.println(idSrc);
+				}
+			}
+			else //Bad name
+			{
+				GrandManitou.cptLinkPageNameError++;
+			}
 		}
 	}
 }
