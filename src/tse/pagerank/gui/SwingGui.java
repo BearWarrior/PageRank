@@ -1,16 +1,29 @@
 package tse.pagerank.gui;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+
+import javax.swing.JList;
+
 /**
  *
  * @author Nono
  */
 public class SwingGui extends javax.swing.JDialog {
+	
+	private ArrayList<String> listeData;
 
     /**
      * Creates new form swingInterface
      */
     public SwingGui(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        listeData = new ArrayList<>();
+        listeData.add("Bienvenu, veuillez entrez un nom ou un id");
+        listeData.add("Par example Switzerland ou South_Korea");
+        
+       
         initComponents();
     }
 
@@ -39,12 +52,30 @@ public class SwingGui extends javax.swing.JDialog {
             	
             }
         });
+        
+        
+        jList1.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                JList list = (JList)evt.getSource();
+                if (evt.getClickCount() == 2) {
 
-        jList1.setModel(new javax.swing.AbstractListModel<String>() {
+                    // Double-click detected
+                	
+                    int index = list.locationToIndex(evt.getPoint());
+                    System.out.println(listeData.get(index));
+                } else if (evt.getClickCount() == 3) {
+
+                    // Triple-click detected
+                    int index = list.locationToIndex(evt.getPoint());
+                }
+            }
+        });
+        jList1.setListData(arrayListToStringcrochet(listeData));
+       /* jList1.setModel(new javax.swing.AbstractListModel<String>() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
             public String getElementAt(int i) { return strings[i]; }
-        });
+        });*/
         jScrollPane1.setViewportView(jList1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -84,9 +115,22 @@ public class SwingGui extends javax.swing.JDialog {
 			String nom = jTextField1.getText();
 			System.out.println(nom);
 		}
-    	 
+    	
+    	ArrayList<String> l = new ArrayList<>();
+    	l.add("Result1");
+    	l.add("result2");// a changer par le bon res
+    	listeData = l;
+    	jList1.setListData(arrayListToStringcrochet(listeData)); 
      }
     
+     
+     private String[] arrayListToStringcrochet(ArrayList<String> array){
+    	 String[] res = new String[array.size()];
+    	 for(int i=0; i<array.size();i++){
+    		 res[i] = array.get(i);
+    	 }
+    	 return res;
+     }
     /**
      * @param args the command line arguments
      */
