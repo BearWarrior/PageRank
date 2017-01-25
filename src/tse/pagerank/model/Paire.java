@@ -25,7 +25,7 @@ public class Paire implements Comparable<Paire>
 	public static int[] fromPaireToPageRankTab(Paire[] paires)
 	{
 		ArrayList<Integer> listLinks = new ArrayList<Integer>();
-		System.out.println(paires.length);
+		//System.out.println(paires.length);
 		for (int i = 0; i < paires.length-1;) 
 		{
 			int dest = paires[i].x;

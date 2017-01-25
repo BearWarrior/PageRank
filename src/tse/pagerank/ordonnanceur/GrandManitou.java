@@ -1,7 +1,9 @@
 package tse.pagerank.ordonnanceur;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -151,22 +153,58 @@ public class GrandManitou
 	 * @param idCat
 	 * @return
 	 */
-	public static Set<Page> getAllPagesFromCat(int idCat)
+	public static Set<Page> getAllPagesFromCat(int idCat, HashMap<Integer, Boolean> idDone)
 	{
+		if(idDone == null)
+			idDone = new HashMap<Integer, Boolean>();
 		Set<Page> response = new HashSet<Page>();
 		Category cat = hashCat.get(idCat);
 		for(int idChild : cat.getListChilds()) //can be either a category or a page
 		{
 			if(hashCat.get(idChild) != null) //If it appears in hashCat, this is a category
 			{
-				response.addAll(getAllPagesFromCat(idChild));
+				if(idDone.get(idChild) == null)
+				{
+					idDone.put(idChild, true);
+					response.addAll(getAllPagesFromCat(idChild, idDone));
+				}
+				else //Loop
+				{
+					//System.out.println(GrandManitou.hashCat.get(idChild).getNom() + " " + idChild + "   probleme parcours 2 fois !");
+				}
 			}
 			else if(hashPage.get(idChild) != null) //If it appears in hashPage, this is a page
 			{
 				response.add(hashPage.get(idChild));
 			}
 		}
-		
 		return response;
+	}
+	
+	public static Set<Page> getAllPagesFromCat(String nomCat)
+	{
+		int idCat = GrandManitou.hashNomIdCat.get(nomCat);
+		Set<Page> response = new HashSet<Page>();
+		Category cat = hashCat.get(idCat);
+		for(int idChild : cat.getListChilds()) //can be either a category or a page
+		{
+			if(hashCat.get(idChild) != null) //If it appears in hashCat, this is a category
+			{
+				response.addAll(getAllPagesFromCat(idChild, null));
+			}
+			else if(hashPage.get(idChild) != null) //If it appears in hashPage, this is a page
+			{
+				response.add(hashPage.get(idChild));
+			}
+		}
+		return response;
+	}
+	
+	public static List<Page> sortPages(Set<Page> pages)
+	{
+		List<Page> pagesAL = new ArrayList( pages);
+		Collections.sort(pagesAL);
+		Collections.reverse(pagesAL);
+		return pagesAL;
 	}
 }

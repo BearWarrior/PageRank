@@ -1,7 +1,11 @@
 package tse.pagerank.main;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +23,7 @@ import tse.pagerank.ordonnanceur.GrandManitou;
 
 public class Main 
 {
+	final static int ID_CAT_HISTORY = 5794;
 	final static int ID_CAT_SWITZERLAND = 7933;
 	final static int ID_ART_SWITZERLAND = 10801;
 	final static int ID_CAT_SOUTHKOREA = 4;
@@ -28,6 +33,8 @@ public class Main
 	
 	private static final File PAGERANKS_RAW_FILE = new File("wikipedia-pageranks.raw");  // Output file
 
+	final static double EPSILON = 0.0000000001;
+	
 	public static void main(String[] args) 
 	{
 		GrandManitou gm = new GrandManitou();
@@ -44,6 +51,7 @@ public class Main
 
 		long tpsDebut = System.currentTimeMillis();
 
+		//_________________________________________FILE PROCESS_____________________________________________
 		//Article (Page & categories)
 		InputOutput.readCategories(filePage, 11, "page");
 		System.out.print("traitement Page : " + (System.currentTimeMillis() - tpsDebut) + "ms 		");
@@ -68,129 +76,109 @@ public class Main
 
 		System.out.println("______________________________");
 
-		//SORT
+		
+		System.out.println(GrandManitou.hashNomIdCat.get("'Wars'"));
+		
+		GrandManitou.displayChildOfCat(6810);
+		
+		//________________________________PROCESS BEFORE CALLING PAGERANK____________________________________
+		//Sort 
 		Paire[] intPair = new Paire[GrandManitou.tabDestSrc.size()];
 		for (int i = 0; i < intPair.length; i++) 
-		{
 			intPair[i] = GrandManitou.tabDestSrc.get(i);
-		}
 		Arrays.sort(intPair);
-		//Mise en forme pour le page rank
+		//Format data for the pagerank
 		int[] links = Paire.fromPaireToPageRankTab(intPair);
-		/*for (int i = 0; i < 500; i++) 
-			System.out.println(links[i]);*/
 
 
-
-
+		//__________________________________________PAGE RANK_________________________________________________
 		// Iteratively compute PageRank
 		final double DAMPING = 0.85;  // Between 0.0 and 1.0; standard value is 0.85
 		System.out.println("Computing PageRank...");
 		Pagerank pr = new Pagerank(links);
 		double[] prevPageranks = pr.pageranks.clone();
-		for (int i = 0; i < 10; i++)
+		double[] changeRatio = new double[2];
+		
+		int iteration = 0;
+		do
 		{
-			// Do iteration
-			System.out.print("Iteration " + i);
-			long startTime = System.currentTimeMillis();
 			pr.iterateOnce(DAMPING);
-			System.out.printf(" (%.3f s)%n", (System.currentTimeMillis() - startTime) / 1000.0);
+			if(iteration%10 == 0)
+			{
+				long startTime = System.currentTimeMillis();
+				System.out.print("Iteration " + iteration);
+				System.out.printf(" (%.3f s)%n", (System.currentTimeMillis() - startTime) / 1000.0);
+			}
 
-			// Calculate and print statistics
+			// Calculate (and print) statistics
 			double[] pageranks = pr.pageranks;
-			//printPagerankChangeRatios(prevPageranks, pageranks);
-			//printTopPages(pageranks, GrandManitou.hashPage);
+			changeRatio = printPagerankChangeRatios(prevPageranks, pageranks);
 			prevPageranks = pageranks.clone();
+			iteration++;
 		}
+		while(changeRatio[0] < (1 - EPSILON) && changeRatio[1] > (1 + EPSILON));
 		
-		//assignation des pageranks aux pages :
+		//______________________________ASSIGNING PAGE RANK TO OUR PAGES________________________________________
+		
 		pr.setPageRanksToPages();
+		System.out.println("______________________________");
 		
-		
-		Page p = GrandManitou.getMaxPageRankOfCat(ID_ART_SWITZERLAND);
-		System.out.println(p);
-		
-		System.out.println("________________________________________________");
-		
-		Set<Page> pageFromPreviousCat = GrandManitou.getAllPagesFromCat(ID_ART_SWITZERLAND);
-		List<Page> sortedPages = new ArrayList( pageFromPreviousCat);
-		System.out.println("avant : " +sortedPages.size());
-		Collections.sort(sortedPages);
-		Collections.reverse(sortedPages);
-		System.out.println("apres : " + sortedPages.size());
-		System.out.println("base : " + pageFromPreviousCat.size());
-		
-		
+		//______________________________PAGE RANK UTILISATION________________________________________
+		Set<Page> pageFromPreviousCatSTR = GrandManitou.getAllPagesFromCat("'War'");
+		List<Page> sortedPagesSTR = GrandManitou.sortPages(pageFromPreviousCatSTR);
 		
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(new File("AllPageFromSwitzrrrrlandddd.txt")));
-			for(Page page : sortedPages)
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File("War.txt")));
+			for(Page page : sortedPagesSTR)
 			{
-				//System.out.println(page);
+				System.out.println(page);
 				bw.write(page.toString() + "\n");
 			}
+			bw.flush();
 			bw.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
-		
-		/*
 
-		// Write PageRanks to file
-		DataOutputStream out;
-		try {
-			out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(PAGERANKS_RAW_FILE)));
-			
-			try {
-				for (double x : pr.pageranks)
-					out.writeDouble(x);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				try {
-					out.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		//GrandManitou.displayChildOfCat(GrandManitou.hashCatToArt.get(4622));
-		//GrandManitou.displayChildOfCat(ID_ART_SOUTHKOREA);
-
-*/
-	}
+	} //End of the main
 	
-	private static void printPagerankChangeRatios(double[] prevPr, double[] pr) {
+	
+	
+	
+	private static double[] printPagerankChangeRatios(double[] prevPr, double[] pr) 
+	{
+		double[] out = new double[2];
 		double min = Double.POSITIVE_INFINITY;
 		double max = 0;
-		for (int i = 0; i < pr.length; i++) {
-			if (pr[i] != 0 && prevPr[i] != 0) {
+		for (int i = 0; i < pr.length; i++) 
+		{
+			if (pr[i] != 0 && prevPr[i] != 0) 
+			{
 				double ratio = pr[i] / prevPr[i];
 				min = Math.min(ratio, min);
 				max = Math.max(ratio, max);
 			}
 		}
-		System.out.println("Range of ratio of changes: " + min + " to " + max);
+		out[0] = min;
+		out[1] = max;
+		//System.out.println("Range of ratio of changes: " + min + " to " + max);
+		return out;
 	}
 	
 	
-	private static void printTopPages(double[] pageranks, Map<Integer, Page> titleById) {
+	private static void printTopPages(double[] pageranks, Map<Integer, Page> titleById) 
+	{
 		final int NUM_PAGES = 30;
 		double[] sorted = pageranks.clone();
 		Arrays.sort(sorted);
-		for (int i = 0; i < NUM_PAGES; i++) {
-			for (int j = 0; j < sorted.length; j++) {
-				if (pageranks[j] == sorted[sorted.length - 1 - i]) {
+		for (int i = 0; i < NUM_PAGES; i++) 
+		{
+			for (int j = 0; j < sorted.length; j++) 
+			{
+				if (pageranks[j] == sorted[sorted.length - 1 - i]) 
+				{
 					System.out.printf("  %.3f  %s%n", Math.log10(pageranks[j]), titleById.get(j));
 					break;
 				}
@@ -198,8 +186,3 @@ public class Main
 		}
 	}
 }
-
-
-/*int idPage = 156033;
-System.out.println("nombre de lien depuis la page id " + idPage + ":  " + GrandManitou.hashPage.get(idPage).getListLink().size());
-GrandManitou.hashPage.get(idPage).displayLinks();*/

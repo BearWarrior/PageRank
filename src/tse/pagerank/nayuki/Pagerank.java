@@ -1,5 +1,12 @@
 package tse.pagerank.nayuki;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 /* 
  * Computing Wikipedia's internal PageRanks
  * 
@@ -44,6 +51,8 @@ public final class Pagerank {
 	// Temporary array, which is filled and discarded per iteration. Length equals idLimit.
 	private double[] newPageranks;
 	
+	//File which can contains the raw pagerank (for faster process)
+	private static final File PAGERANKS_RAW_FILE = new File("wikipedia-pageranks.raw");  // Output file
 	
 	/*---- Constructor ----*/
 	
@@ -139,8 +148,6 @@ public final class Pagerank {
 		}
 	}
 	
-
-	
 	public void setPageRanksToPages()
 	{
 		for (int i = 0; i < pageranks.length; i++) 
@@ -152,6 +159,32 @@ public final class Pagerank {
 					GrandManitou.hashPage.get(i).setPagerank(pageranks[i]);
 				}
 			}
+		}
+	}
+	
+	public void createRawFile()
+	{
+		DataOutputStream out;
+		try {
+			out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(PAGERANKS_RAW_FILE)));
+			
+			try {
+				for (double x : this.pageranks)
+					out.writeDouble(x);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }
