@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import tse.pagerank.gui.SwingGui;
 import tse.pagerank.io.InputOutput;
 import tse.pagerank.model.Page;
 import tse.pagerank.model.Paire;
@@ -37,11 +38,8 @@ public class Main
 	
 	public static void main(String[] args) 
 	{
+		//DO not remove, it initialize the object
 		GrandManitou gm = new GrandManitou();
-
-		//EN
-		//File fileCat = new File("enwiki-20161020-category.sql.gz");
-		//File fileCatLinks = new File("enwiki-20161020-categorylinks.sql.gz");
 
 		//SIMPLE
 		File fileCat = new File("simplewiki-20161020-category.sql.gz");
@@ -58,7 +56,7 @@ public class Main
 		System.out.println("Nombre de pages: " + GrandManitou.hashPage.size() + "		Nombre de catégorie: " + GrandManitou.hashCat.size());
 		tpsDebut = System.currentTimeMillis();
 		//Categories - check if categories from previous process are saved and we update their idCategory
-		//Remmarque : sur simple wiki --> toutes les catégories répertiriés dans page.sql sont présentes dans catégories.sql
+		//Remark : sur simple wiki --> toutes les catégories répertiriés dans page.sql sont présentes dans catégories.sql
 		InputOutput.readCategories(fileCat, 4, "category");
 		System.out.print("traitement Catégorie : " + (System.currentTimeMillis() - tpsDebut) + "ms		");
 		System.out.println("Nombre de mise a jour : " +  GrandManitou.hashCat.size()  + "   Nombre de catégories ignorées : " + GrandManitou.cptMismatch_inCategoryNotInPage);
@@ -123,8 +121,12 @@ public class Main
 		pr.setPageRanksToPages();
 		System.out.println("______________________________");
 		
+		
+		SwingGui.launchGUI();
+		
+		
 		//______________________________PAGE RANK UTILISATION________________________________________
-		Set<Page> pageFromPreviousCatSTR = GrandManitou.getAllPagesFromCat("'War'");
+		/*Set<Page> pageFromPreviousCatSTR = GrandManitou.getAllPagesFromCat("'War'");
 		List<Page> sortedPagesSTR = GrandManitou.sortPages(pageFromPreviousCatSTR);
 		
 		try {
@@ -140,7 +142,7 @@ public class Main
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
 	} //End of the main
 	
@@ -166,7 +168,6 @@ public class Main
 		//System.out.println("Range of ratio of changes: " + min + " to " + max);
 		return out;
 	}
-	
 	
 	private static void printTopPages(double[] pageranks, Map<Integer, Page> titleById) 
 	{

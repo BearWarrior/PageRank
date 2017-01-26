@@ -162,7 +162,9 @@ public class InputOutput
 		}
 	}
 
-	//TODO WARNNNG ABOUT COMAS
+	// /!\ WARNING FOR THE FOLLOWING METHODS :
+	//The name are collected badly, we keep the "'" at the beginning and at the end and the string can be cut if there is a coma
+	
 	private static void getCategories(String tuple)
 	{
 		String[] array = tuple.split(",");
