@@ -9,6 +9,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
+
 import tse.pagerank.model.Page;
 import tse.pagerank.ordonnanceur.GrandManitou;
 
@@ -127,7 +129,11 @@ public class SwingGui extends javax.swing.JDialog
     	catch (NumberFormatException e) //Is a name 
     	{
 			String nom = jTextField1.getText();
+			if(GrandManitou.hashNomIdCat.get("'" + nom + "'") != null){
     		listPages = GrandManitou.sortPages(GrandManitou.getAllPagesFromCat("'" + nom + "'"));
+			}else{
+				JOptionPane.showMessageDialog(this, "Cette catégorie n'existe pas");
+			}
 		}
     	
     	listeData = listPages;
