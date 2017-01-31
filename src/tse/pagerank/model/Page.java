@@ -17,6 +17,13 @@ public class Page extends Article implements Comparable<Page>
 		listLink = new HashSet<Integer>();
 		this.pagerank = p_pagerank;
 	}
+	
+	public Page(Page p)
+	{
+		super(p.id, p.nom);
+		listLink = new HashSet<Integer>(p.listLink);
+		this.pagerank = p.pagerank;
+	}
 
 	public void addLink(int id_dest)
 	{
@@ -39,7 +46,7 @@ public class Page extends Article implements Comparable<Page>
 	@Override
 	public String toString()
 	{
-		return "id: " + this.id + "		nom: " + this.nom + "		pageRan: " + Math.log10(pagerank);
+		return String.valueOf(Math.log10(pagerank)).replace(".", ",")+ ";" + this.id + ";" + this.nom + ";";
 	}
 
 	public void setPagerank(double p_pagerank)
@@ -56,16 +63,10 @@ public class Page extends Article implements Comparable<Page>
 	public int compareTo(Page arg0) 
 	{
 		if(this.pagerank > arg0.pagerank)
-		{
 			return 1;
-		}
 		else if(this.pagerank < arg0.pagerank)
-		{
 			return -1;
-		}
 		else
-		{
 			return 0;
-		}
 	}
 }

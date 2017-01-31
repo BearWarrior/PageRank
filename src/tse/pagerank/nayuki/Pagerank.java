@@ -16,7 +16,9 @@ import java.io.IOException;
  */
 
 import java.util.Arrays;
+import java.util.Map;
 
+import tse.pagerank.model.Page;
 import tse.pagerank.ordonnanceur.GrandManitou;
 
 
@@ -172,19 +174,54 @@ public final class Pagerank {
 				for (double x : this.pageranks)
 					out.writeDouble(x);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
 				try {
 					out.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	public static double[] printPagerankChangeRatios(double[] prevPr, double[] pr) 
+	{
+		double[] out = new double[2];
+		double min = Double.POSITIVE_INFINITY;
+		double max = 0;
+		for (int i = 0; i < pr.length; i++) 
+		{
+			if (pr[i] != 0 && prevPr[i] != 0) 
+			{
+				double ratio = pr[i] / prevPr[i];
+				min = Math.min(ratio, min);
+				max = Math.max(ratio, max);
+			}
+		}
+		out[0] = min;
+		out[1] = max;
+		//System.out.println("Range of ratio of changes: " + min + " to " + max);
+		return out;
+	}
+	
+	private static void printTopPages(double[] pageranks, Map<Integer, Page> titleById) 
+	{
+		final int NUM_PAGES = 30;
+		double[] sorted = pageranks.clone();
+		Arrays.sort(sorted);
+		for (int i = 0; i < NUM_PAGES; i++) 
+		{
+			for (int j = 0; j < sorted.length; j++) 
+			{
+				if (pageranks[j] == sorted[sorted.length - 1 - i]) 
+				{
+					System.out.printf("  %.3f  %s%n", Math.log10(pageranks[j]), titleById.get(j));
+					break;
+				}
+			}
 		}
 	}
 }

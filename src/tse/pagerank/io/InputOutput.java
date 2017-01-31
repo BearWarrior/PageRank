@@ -24,7 +24,6 @@ public class InputOutput
 
 		int nbLigneCat = 0;
 		int nbLigneCatLink = 0;
-		int nbLignePage = 0;
 
 		try 
 		{
@@ -57,7 +56,6 @@ public class InputOutput
 					if(line.startsWith(prefixInsertPage) && line.endsWith(suffixInsert))
 					{
 						getTuples(line, nbVirgule, type);
-						nbLignePage ++;
 					}
 				}
 				else if (type == "pageLinks")
@@ -65,18 +63,9 @@ public class InputOutput
 					if(line.startsWith(prefixInsertPageLink) && line.endsWith(suffixInsert))
 					{
 						getTuples(line, nbVirgule, type);
-						nbLignePage ++;
 					}
 				}
-				//if(nbLigne %1000 == 0)
-				//System.out.println("type : " + type + "  cpt : " + nbLigne + "  "  + (System.currentTimeMillis() - timeStart ));
 			}
-			/*if(type == "category")
-				System.out.println("nbLigneCat = " + nbLigneCat);
-			else if(type == "link")
-				System.out.println("nbLigneCatLink = " + nbLigneCatLink);
-			else if (type == "page")
-				System.out.println("nbLignePage = " + nbLignePage);*/
 
 			in.close();
 

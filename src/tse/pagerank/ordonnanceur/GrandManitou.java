@@ -1,8 +1,10 @@
 package tse.pagerank.ordonnanceur;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +12,7 @@ import java.util.Set;
 import tse.pagerank.model.Category;
 import tse.pagerank.model.Page;
 import tse.pagerank.model.Paire;
+import tse.pagerank.nayuki.Pagerank;
 
 public class GrandManitou 
 {
@@ -144,10 +147,10 @@ public class GrandManitou
 				}
 			}
 		}
-		
+
 		return p;
 	}
-	
+
 	/**
 	 * return all the pages of a category (subcategories included)
 	 * @param idCat
@@ -180,7 +183,7 @@ public class GrandManitou
 		}
 		return response;
 	}
-	
+
 	public static Set<Page> getAllPagesFromCat(String nomCat)
 	{
 		int idCat = GrandManitou.hashNomIdCat.get(nomCat);
@@ -199,12 +202,89 @@ public class GrandManitou
 		}
 		return response;
 	}
-	
+
 	public static List<Page> sortPages(Set<Page> pages)
 	{
-		List<Page> pagesAL = new ArrayList( pages);
+		List<Page> pagesAL = new ArrayList( pages); //copy
 		Collections.sort(pagesAL);
 		Collections.reverse(pagesAL);
 		return pagesAL;
+	}
+
+	public static void getPageRankOfCat(String cat)
+	{
+		long startTime = System.currentTimeMillis();
+		
+		ArrayList<Paire> paires = new ArrayList<Paire>();
+
+		Set<Page> _p = getAllPagesFromCat(cat); //get All the pages from the category
+		HashMap<Integer, Page> hash = new HashMap<>();
+		for(Page p : _p){
+			hash.put(new Integer((int) p.getId()), p);
+		}
+		for(Page p : _p) //Pour toutes les pages
+		{
+			Page pbis = new Page(p); //TODO constructeur e copy
+		
+			Iterator iteLink = pbis.getListLink().iterator();
+					
+			while(iteLink.hasNext())
+			{
+				int link = (int) iteLink.next();
+				boolean linkOK= false;
+				if(hash.get(link) != null){
+					linkOK = true;
+					Paire paire = new Paire(link, (int)p.getId());
+					paires.add(paire);
+				}
+				if(!linkOK) //If the link is not in our set
+				{
+					iteLink.remove();
+				}
+			}
+		}
+
+		//________________________________PROCESS BEFORE CALLING PAGERANK____________________________________
+		//Sort 
+		Paire[] intPair = new Paire[paires.size()];
+		for (int i = 0; i < intPair.length; i++) 
+			intPair[i] = paires.get(i);
+		Arrays.sort(intPair);
+		//Format data for the pagerank
+		int[] links = Paire.fromPaireToPageRankTab(intPair);
+
+
+		//__________________________________________PAGE RANK_________________________________________________
+		// Iteratively compute PageRank
+		final double DAMPING = 0.85;  // Between 0.0 and 1.0; standard value is 0.85
+		System.out.println("Computing PageRank...");
+		Pagerank pr = new Pagerank(links);
+		double[] prevPageranks = pr.pageranks.clone();
+		double[] changeRatio = new double[2];
+
+		System.out.println("Prétraitement : " + (System.currentTimeMillis() - startTime) );
+		
+		int iteration = 0;
+		startTime = System.currentTimeMillis();
+		do
+		{
+			startTime = System.currentTimeMillis();
+			pr.iterateOnce(DAMPING);
+			if(iteration%10 == 0)
+			{
+				System.out.print("Iteration " + iteration);
+				System.out.printf(" (%.3f s)%n", (System.currentTimeMillis() - startTime) / 1000.0);
+				startTime = System.currentTimeMillis();
+			}
+
+			// Calculate (and print) statistics
+			double[] pageranks = pr.pageranks;
+			changeRatio = Pagerank.printPagerankChangeRatios(prevPageranks, pageranks);
+			prevPageranks = pageranks.clone();
+			iteration++;
+		}
+		while(changeRatio[0] < (1 - 0.0000000001) && changeRatio[1] > (1 + 0.0000000001));
+		
+		pr.setPageRanksToPages();
 	}
 }
