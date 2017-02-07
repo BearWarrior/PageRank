@@ -60,6 +60,9 @@ public class Main
 		System.out.println("______________________________");
 		
 		
+		GrandManitou.hashNomIdPage = null;
+		GrandManitou.hashCatToArt = null; 
+		
 //		//________________________________PROCESS BEFORE CALLING PAGERANK____________________________________
 //		//Sort 
 //		Paire[] intPair = new Paire[GrandManitou.tabDestSrc.size()];
